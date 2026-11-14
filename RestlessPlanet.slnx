@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="RestlessPlanet.App/RestlessPlanet.App.csproj">
+    <Deploy Solution="Debug|*" />
+  </Project>
+  <Project Path="RestlessPlanet.Core/RestlessPlanet.Core.csproj" />
+  <Project Path="RestlessPlanet.Tests/RestlessPlanet.Tests.csproj" />
+</Solution>
