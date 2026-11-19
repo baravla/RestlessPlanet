@@ -1,20 +1,16 @@
-﻿namespace RestlessPlanet.App {
-    public partial class MainPage : ContentPage {
-        int count = 0;
+﻿using Esri.ArcGISRuntime.Mapping;
+using Map = Esri.ArcGISRuntime.Mapping.Map;
+namespace RestlessPlanet.App;
 
-        public MainPage() {
-            InitializeComponent();
-        }
+public partial class MainPage : ContentPage {
+    public MainPage() {
+        InitializeComponent();
 
-        private void OnCounterClicked(object? sender, EventArgs e) {
-            count++;
+        var map = new Map(BasemapStyle.ArcGISTopographic) {
+            // центр США: широта, долгота, масштаб
+            InitialViewpoint = new Viewpoint(39.8, -98.6, 30_000_000)
+        };
 
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
-            else
-                CounterBtn.Text = $"Clicked {count} times";
-
-            SemanticScreenReader.Announce(CounterBtn.Text);
-        }
+        MainMapView.Map = map;
     }
 }
