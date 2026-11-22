@@ -25,3 +25,8 @@ boundaries, with hurricanes and AI-powered queries planned next.
 - [ ] Azure backend with infrastructure as code
 - [ ] Natural-language queries and an MCP server
 - [ ] NOAA hurricane tracks
+
+![RestlessPlanet](docs/screenshot.png)
+
+Shows earthquakes from the last 24 hours (USGS live feed).
+Marker size = magnitude, color = depth (red < 70 km, yellow < 300 km, blue deeper).
