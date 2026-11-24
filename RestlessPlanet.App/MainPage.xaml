@@ -2,9 +2,36 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:esri="http://schemas.esri.com/arcgis/runtime/2013"
-             x:Class="RestlessPlanet.App.MainPage"
-             Title="RestlessPlanet">
+             x:Class="RestlessPlanet.App.MainPage">
 
-    <esri:MapView x:Name="MainMapView" />
+    <Grid RowDefinitions="Auto,*">
 
+        <HorizontalStackLayout Grid.Row="0" Padding="10" Spacing="12">
+            <Label Text="Period" VerticalOptions="Center" />
+            <Picker x:Name="PeriodPicker" WidthRequest="120"
+                    SelectedIndexChanged="OnFilterChanged">
+                <Picker.Items>
+                    <x:String>Last hour</x:String>
+                    <x:String>Last day</x:String>
+                    <x:String>Last week</x:String>
+                    <x:String>Last month</x:String>
+                </Picker.Items>
+            </Picker>
+
+            <Label Text="Magnitude" VerticalOptions="Center" />
+            <Picker x:Name="MagnitudePicker" WidthRequest="100"
+                    SelectedIndexChanged="OnFilterChanged">
+                <Picker.Items>
+                    <x:String>All</x:String>
+                    <x:String>1.0+</x:String>
+                    <x:String>2.5+</x:String>
+                    <x:String>4.5+</x:String>
+                </Picker.Items>
+            </Picker>
+
+            <ActivityIndicator x:Name="Busy" IsRunning="False" VerticalOptions="Center" />
+        </HorizontalStackLayout>
+
+        <esri:MapView x:Name="MainMapView" Grid.Row="1" />
+    </Grid>
 </ContentPage>

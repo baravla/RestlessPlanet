@@ -12,7 +12,10 @@ public partial class MainPage : ContentPage {
     private static readonly HttpClient Http = new();
     private readonly IEarthquakeService _quakes = new UsgsEarthquakeService(Http);
     private readonly GraphicsOverlay _quakeOverlay = new();
-    private bool _loaded;
+    private CancellationTokenSource? _loadCts;
+    private bool _initialized;
+    private static readonly string[] Periods = ["hour", "day", "week", "month"];
+    private static readonly string[] Magnitudes = ["all", "1.0", "2.5", "4.5"];
 
     public MainPage() {
         InitializeComponent();
@@ -24,20 +27,20 @@ public partial class MainPage : ContentPage {
         MainMapView.GeoViewTapped += OnMapTapped;
     }
 
-    protected override async void OnAppearing() {
+    protected override void OnAppearing() {
         base.OnAppearing();
-        if (_loaded) return;
-        _loaded = true;
+        if (_initialized) return;
+        _initialized = true;
 
-        try {
-            var quakes = await _quakes.GetRecentAsync("all_day");
-            foreach (var q in quakes)
-                _quakeOverlay.Graphics.Add(ToGraphic(q));
-            Title = $"RestlessPlanet — {quakes.Count} earthquakes in the last 24 hours";
-        }
-        catch (Exception ex) {
-            await DisplayAlert("Could not load earthquakes", ex.Message, "OK");
-        }
+        MagnitudePicker.SelectedIndex = 2;   // 2.5+
+        PeriodPicker.SelectedIndex = 1;      // Last day — вызовет OnFilterChanged
+    }
+
+    private async void OnFilterChanged(object? sender, EventArgs e) {
+        if (PeriodPicker.SelectedIndex < 0 || MagnitudePicker.SelectedIndex < 0) return;
+
+        var feed = $"{Magnitudes[MagnitudePicker.SelectedIndex]}_{Periods[PeriodPicker.SelectedIndex]}";
+        await LoadAsync(feed);
     }
 
     private static Graphic ToGraphic(Earthquake q) {
@@ -74,5 +77,33 @@ public partial class MainPage : ContentPage {
             graphic.Attributes["title"]?.ToString() ?? "",
             graphic.Attributes["detail"]?.ToString() ?? "");
         MainMapView.ShowCalloutAt(e.Location, callout);
+    }
+
+    private async Task LoadAsync(string feed) {
+        _loadCts?.Cancel();                       // отменить незаконченную загрузку
+        _loadCts = new CancellationTokenSource();
+        var ct = _loadCts.Token;
+
+        Busy.IsRunning = true;
+        try {
+            var quakes = await _quakes.GetRecentAsync(feed, ct);
+
+            MainMapView.DismissCallout();
+            _quakeOverlay.Graphics.Clear();
+            foreach (var q in quakes)
+                _quakeOverlay.Graphics.Add(ToGraphic(q));
+
+            Title = $"RestlessPlanet — {quakes.Count} earthquakes ({PeriodPicker.SelectedItem}, {MagnitudePicker.SelectedItem})";
+        }
+        catch (OperationCanceledException) {
+            // пользователь сменил фильтр, пока шла загрузка, — это нормально
+        }
+        catch (Exception ex) {
+            await DisplayAlert("Could not load earthquakes", ex.Message, "OK");
+        }
+        finally {
+            if (!ct.IsCancellationRequested)
+                Busy.IsRunning = false;
+        }
     }
 }
